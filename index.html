@@ -170,6 +170,17 @@
     color: #fff; cursor: pointer;
   }
   .clean #hud, .clean #controls { display: none; }
+
+  /* ============================================================
+     OPTION A: hide the animation's OWN map drawings so they don't
+     clash with the world map + Indonesia already in background.png.
+     We keep the motion accents (pulse, ripples, connection lines,
+     travelling pulses, final constellation) and all the text.
+     ============================================================ */
+  #indoPath   { display: none; }  /* mint Indonesia outline (photo has it) */
+  #worldNodes { display: none; }  /* animation's world-map node network    */
+  #worldRoutes{ display: none; }  /* animation's world-map routes           */
+  #payNodes   { display: none; }  /* payment-card ring that overlaps the map*/
 </style>
 </head>
 <body>
