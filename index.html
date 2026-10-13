@@ -49,9 +49,27 @@
     background: var(--forest);
     overflow: hidden;
     transform-origin: center center;
-    /* subtle emerald radial gradient baked into the base */
-    background:
-      radial-gradient(120% 80% at 50% 18%, #16533f 0%, #0d3a2d 42%, #0B3028 72%, #072019 100%);
+  }
+
+  /* custom background image (your emerald world-map artwork), covers the
+     whole 1080x1920 stage. Sits behind everything, dimmed via #bgDim so the
+     white text and mint graphics stay readable on top. */
+  #bgImage {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: url("background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  /* fallback emerald gradient shows if background.jpg is missing */
+  #bgFallback {
+    position: absolute; inset: 0; z-index: -1;
+    background: radial-gradient(120% 80% at 50% 18%, #16533f 0%, #0d3a2d 42%, #0B3028 72%, #072019 100%);
+  }
+  /* darken the photo a touch for text contrast */
+  #bgDim {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(7,20,15,0.35) 0%, rgba(7,20,15,0.15) 40%, rgba(7,20,15,0.45) 100%);
   }
 
   /* ambient grain/vignette for a premium, non-flat finish */
@@ -115,7 +133,7 @@
 
   /* logo placeholder — honest, labeled area for the real brand asset */
   #logoSlot {
-    position: absolute; z-index: 45; left: 50%; top: 1500px;
+    position: absolute; z-index: 45; left: 50%; bottom: 150px;
     transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 18px;
     opacity: 0;
@@ -156,6 +174,11 @@
 </head>
 <body>
   <div id="stage">
+    <!-- ====================== CUSTOM BACKGROUND ====================== -->
+    <div id="bgFallback"></div>
+    <div id="bgImage"></div>
+    <div id="bgDim"></div>
+
     <!-- ====================== SVG MOTION LAYER ====================== -->
     <svg id="svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
       <defs>
@@ -219,9 +242,12 @@
 
     <!-- ====================== TEXT OVERLAYS ====================== -->
 
+    <!-- All text blocks are vertically centred on the stage, so the margin
+         above the content always equals the margin below it (symmetric). -->
+
     <!-- SCENE 1 -->
-    <div class="layer" id="t1" style="opacity:0; transform:translateY(0)">
-      <div style="position:absolute; top:1140px; width:900px;">
+    <div class="layer" id="t1" style="opacity:0;">
+      <div style="width:900px;">
         <div class="headline" style="font-size:112px;">
           <div class="word"><span>INDONESIA,</span></div><br/>
           <div class="word"><span>YOU'RE <em class="mint" style="font-style:normal;">CONNECTED.</em></span></div>
@@ -231,7 +257,7 @@
 
     <!-- SCENE 2 -->
     <div class="layer" id="t2" style="opacity:0;">
-      <div style="position:absolute; top:1180px; width:960px;">
+      <div style="width:960px;">
         <div class="bignum" style="font-size:420px;">110<span class="plus">+</span></div>
         <div class="statlabel" style="margin-top:-30px;">COUNTRIES</div>
       </div>
@@ -239,7 +265,7 @@
 
     <!-- SCENE 3 -->
     <div class="layer" id="t3" style="opacity:0;">
-      <div style="position:absolute; top:1140px; width:1000px;">
+      <div style="width:1000px;">
         <div class="bignum" style="font-size:420px;">210<span class="plus">+</span></div>
         <div class="statlabel" style="margin-top:-30px; font-size:46px;">LOCAL PAYMENT METHODS</div>
       </div>
@@ -247,7 +273,7 @@
 
     <!-- SCENE 4 -->
     <div class="layer" id="t4" style="opacity:0;">
-      <div style="position:absolute; top:1210px; width:940px;">
+      <div style="width:940px;">
         <div class="headline" style="font-size:84px;">
           <div class="word"><span>REAL-TIME <em class="mint" style="font-style:normal;">PAYMENTS</em></span></div><br/>
           <div class="word"><span>&amp; <em class="mint" style="font-style:normal;">PAYOUTS</em></span></div>
@@ -260,7 +286,7 @@
 
     <!-- SCENE 5 -->
     <div class="layer" id="t5" style="opacity:0;">
-      <div style="position:absolute; top:760px; width:960px;">
+      <div style="width:960px;">
         <div class="kicker" id="t5kick" style="opacity:0;">NOW LIVE IN</div>
         <div class="headline" id="t5name" style="font-size:150px; margin-top:28px; opacity:0;">
           ECHO <span class="mint">MONEY</span>
