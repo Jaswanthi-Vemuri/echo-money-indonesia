@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Echo Money — Now Live in Indonesia (15s)</title>
+<style>
+  /* ============================================================
+     ECHO MONEY — "INDONESIA CONNECTS TO THE WORLD"
+     15-second vertical (1080x1920) 2D motion-graphics ad.
+     Self-contained: no external fonts, libraries, or assets.
+     Brand palette:
+       --forest  #0B3028  deep forest green (background)
+       --emerald #10483A  dark emerald (gradient)
+       --mint    #39D98A  mint green (accents, numbers, lines)
+       --teal    #63C9A5  soft teal
+       --white   #FFFFFF  typography
+       --muted   #C2DED2  muted mint (secondary text)
+     ============================================================ */
+
+  :root {
+    --forest:  #0B3028;
+    --emerald: #10483A;
+    --mint:    #39D98A;
+    --teal:    #63C9A5;
+    --white:   #FFFFFF;
+    --muted:   #C2DED2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #05140f;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Helvetica Neue", "Arial Black", Arial, "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Stage is a true 1080x1920 canvas scaled to fit the viewport.
+     Screen-record the #stage element at 1080x1920 for pixel-perfect export. */
+  #stage {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    background: var(--forest);
+    overflow: hidden;
+    transform-origin: center center;
+    /* subtle emerald radial gradient baked into the base */
+    background:
+      radial-gradient(120% 80% at 50% 18%, #16533f 0%, #0d3a2d 42%, #0B3028 72%, #072019 100%);
+  }
+
+  /* ambient grain/vignette for a premium, non-flat finish */
+  #vignette {
+    position: absolute; inset: 0; z-index: 60; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%);
+    mix-blend-mode: multiply;
+  }
+
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* All text lives in HTML overlays for crisp, hinted type */
+  .layer {
+    position: absolute; inset: 0; z-index: 40;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .kicker {
+    color: var(--mint);
+    font-weight: 800;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    font-size: 34px;
+  }
+
+  .headline {
+    color: var(--white);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+  }
+
+  .mint { color: var(--mint); }
+  .muted { color: var(--muted); }
+
+  /* Big stat number */
+  .bignum {
+    color: var(--white);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    font-size: 460px;
+    text-shadow: 0 0 60px rgba(57,217,138,0.18);
+  }
+  .bignum .plus { color: var(--mint); }
+
+  .statlabel {
+    color: var(--white);
+    font-weight: 800;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-size: 54px;
+  }
+
+  /* word reveal: each span clipped & lifted in */
+  .word { display: inline-block; overflow: hidden; vertical-align: top; }
+  .word > span { display: inline-block; transform: translateY(110%); will-change: transform; }
+
+  /* logo placeholder — honest, labeled area for the real brand asset */
+  #logoSlot {
+    position: absolute; z-index: 45; left: 50%; top: 1500px;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    opacity: 0;
+  }
+  .logomark { display: flex; align-items: center; gap: 18px; }
+  .logomark .bars { display: flex; gap: 7px; }
+  .logomark .bars i {
+    display: block; width: 15px; height: 46px; border-radius: 5px;
+    background: var(--mint);
+    transform: skewX(-12deg);
+  }
+  .logomark .bars i:nth-child(2) { background: var(--teal); }
+  .logomark .wordmark {
+    color: var(--white); font-weight: 800; font-size: 44px; letter-spacing: -0.01em;
+  }
+  .logohint {
+    color: var(--muted); font-size: 20px; letter-spacing: 0.28em;
+    text-transform: uppercase; opacity: 0.5;
+  }
+
+  /* progress + timecode (dev aid — hidden for final record via ?clean=1) */
+  #hud {
+    position: absolute; z-index: 80; left: 0; bottom: 0; width: 100%;
+    display: flex; align-items: center; gap: 14px; padding: 18px 26px;
+    font-size: 20px; color: var(--muted); font-family: monospace;
+    background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+  }
+  #bar { flex: 1; height: 4px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; }
+  #barfill { height: 100%; width: 0; background: var(--mint); }
+  #controls { position: absolute; z-index: 85; top: 16px; left: 16px; display: flex; gap: 8px; }
+  #controls button {
+    font: inherit; font-size: 16px; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3);
+    color: #fff; cursor: pointer;
+  }
+  .clean #hud, .clean #controls { display: none; }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <!-- ====================== SVG MOTION LAYER ====================== -->
+    <svg id="svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="pulseGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#39D98A" stop-opacity="0.9"/>
+          <stop offset="60%" stop-color="#39D98A" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#39D98A" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="routeGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stop-color="#63C9A5"/>
+          <stop offset="100%" stop-color="#39D98A"/>
+        </linearGradient>
+        <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+      </defs>
+
+      <!-- recurring background network of faint dots -->
+      <g id="dotfield" opacity="0"></g>
+
+      <!-- SCENE 1/5 Indonesia outline + ripples -->
+      <g id="indoGroup" opacity="0">
+        <g id="ripples"></g>
+        <!-- Simplified, stylised Indonesian archipelago (abstract island cluster,
+             not a geographically exact or distortable map) -->
+        <path id="indoPath"
+          d="M250 980
+             C 300 955, 360 962, 410 985
+             C 450 1002, 492 998, 520 980
+             L 560 1000
+             M 600 1010 C 640 998, 690 1004, 730 1022
+             M 300 1030 C 345 1018, 395 1024, 440 1040
+             M 500 1052 C 548 1042, 600 1048, 648 1066
+             M 760 1038 C 792 1030, 826 1036, 858 1052"
+          fill="none" stroke="#39D98A" stroke-width="7"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle id="indoHub" cx="430" cy="992" r="0" fill="#39D98A"/>
+        <circle id="indoHubRing" cx="430" cy="992" r="0" fill="none" stroke="#39D98A" stroke-width="3" opacity="0.6"/>
+      </g>
+
+      <!-- SCENE 2/5 world map node network -->
+      <g id="worldGroup" opacity="0">
+        <g id="worldNodes"></g>
+        <g id="worldRoutes"></g>
+      </g>
+
+      <!-- SCENE 3/4 payment network -->
+      <g id="payGroup" opacity="0">
+        <g id="payLinks"></g>
+        <g id="payNodes"></g>
+      </g>
+
+      <!-- SCENE 5 final converged constellation -->
+      <g id="finalGroup" opacity="0"></g>
+
+      <!-- travelling line motif (persistent) -->
+      <path id="travelLine" fill="none" stroke="url(#routeGrad)" stroke-width="5"
+            stroke-linecap="round" opacity="0"/>
+      <circle id="travelHead" r="0" fill="#FFFFFF" opacity="0"/>
+    </svg>
+
+    <!-- ====================== TEXT OVERLAYS ====================== -->
+
+    <!-- SCENE 1 -->
+    <div class="layer" id="t1" style="opacity:0; transform:translateY(0)">
+      <div style="position:absolute; top:1140px; width:900px;">
+        <div class="headline" style="font-size:112px;">
+          <div class="word"><span>INDONESIA,</span></div><br/>
+          <div class="word"><span>YOU'RE <em class="mint" style="font-style:normal;">CONNECTED.</em></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 2 -->
+    <div class="layer" id="t2" style="opacity:0;">
+      <div style="position:absolute; top:1180px; width:960px;">
+        <div class="bignum" style="font-size:420px;">110<span class="plus">+</span></div>
+        <div class="statlabel" style="margin-top:-30px;">COUNTRIES</div>
+      </div>
+    </div>
+
+    <!-- SCENE 3 -->
+    <div class="layer" id="t3" style="opacity:0;">
+      <div style="position:absolute; top:1140px; width:1000px;">
+        <div class="bignum" style="font-size:420px;">210<span class="plus">+</span></div>
+        <div class="statlabel" style="margin-top:-30px; font-size:46px;">LOCAL PAYMENT METHODS</div>
+      </div>
+    </div>
+
+    <!-- SCENE 4 -->
+    <div class="layer" id="t4" style="opacity:0;">
+      <div style="position:absolute; top:1210px; width:940px;">
+        <div class="headline" style="font-size:84px;">
+          <div class="word"><span>REAL-TIME <em class="mint" style="font-style:normal;">PAYMENTS</em></span></div><br/>
+          <div class="word"><span>&amp; <em class="mint" style="font-style:normal;">PAYOUTS</em></span></div>
+        </div>
+        <div class="headline muted" style="font-size:50px; margin-top:34px; font-weight:700;">
+          <div class="word"><span>TO AND FROM INDONESIA</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 5 -->
+    <div class="layer" id="t5" style="opacity:0;">
+      <div style="position:absolute; top:760px; width:960px;">
+        <div class="kicker" id="t5kick" style="opacity:0;">NOW LIVE IN</div>
+        <div class="headline" id="t5name" style="font-size:150px; margin-top:28px; opacity:0;">
+          ECHO <span class="mint">MONEY</span>
+        </div>
+        <div class="headline muted" id="t5sub" style="font-size:56px; margin-top:34px; font-weight:700; opacity:0;">
+          NOW LIVE IN INDONESIA
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo placeholder (clearly labeled; replace with real asset in edit) -->
+    <div id="logoSlot">
+      <div class="logomark">
+        <span class="bars"><i></i><i></i></span>
+        <span class="wordmark">echo money</span>
+      </div>
+      <div class="logohint">// place authentic logo here</div>
+    </div>
+
+    <div id="vignette"></div>
+
+    <!-- Dev HUD -->
+    <div id="controls">
+      <button id="replay">Replay</button>
+      <button id="cleanBtn">Toggle HUD</button>
+    </div>
+    <div id="hud">
+      <span id="tc">0.00s</span>
+      <div id="bar"><div id="barfill"></div></div>
+      <span id="scene">Scene 1</span>
+    </div>
+  </div>
+
+<script>
+/* ================================================================
+   TIMELINE ENGINE
+   A single requestAnimationFrame loop drives everything from a
+   master clock (0 -> 15000 ms). Each visual property is a function
+   of t, so the result is deterministic and frame-accurate — ideal
+   for screen recording or headless frame capture.
+   ================================================================ */
+
+const DURATION = 15000; // exactly 15 seconds
+const SVGNS = "http://www.w3.org/2000/svg";
+const $ = s => document.querySelector(s);
+const stage = $("#stage");
+
+/* ---------- fit stage to viewport ---------- */
+function fit() {
+  const sc = Math.min(window.innerWidth / 1080, window.innerHeight / 1920);
+  stage.style.transform = `scale(${sc})`;
+}
+window.addEventListener("resize", fit); fit();
+
+/* ---------- easing ---------- */
+const clamp = (v,a=0,b=1) => Math.max(a, Math.min(b, v));
+const easeInOut = t => t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+const easeOut   = t => 1-Math.pow(1-t,3);
+const easeOutBack = t => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); };
+const easeOutExpo = t => t===1?1:1-Math.pow(2,-10*t);
+/* map a global time window [a,b] -> normalized 0..1 with easing */
+function seg(t,a,b,ease=easeInOut){ return ease(clamp((t-a)/(b-a))); }
+
+/* ---------- helpers for SVG ---------- */
+function el(tag, attrs){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+
+/* ================================================================
+   BUILD STATIC/REPEATED GEOMETRY
+   ================================================================ */
+
+/* faint background dot field (persistent network texture) */
+const dotfield = $("#dotfield");
+const DOTS = [];
+for (let i=0;i<70;i++){
+  const x = 60 + Math.random()*960;
+  const y = 60 + Math.random()*1800;
+  const r = 2 + Math.random()*2.2;
+  const c = el("circle",{cx:x,cy:y,r:r,fill:"#39D98A",opacity:0.0});
+  dotfield.appendChild(c);
+  DOTS.push({node:c, base:0.06+Math.random()*0.14, ph:Math.random()*Math.PI*2});
+}
+
+/* ripples for scene 1 */
+const ripplesG = $("#ripples");
+const RIPPLES = [];
+for(let i=0;i<3;i++){
+  const c = el("circle",{cx:430,cy:992,r:0,fill:"none",stroke:"#39D98A","stroke-width":3,opacity:0});
+  ripplesG.appendChild(c); RIPPLES.push(c);
+}
+
+/* Scene 2 — simplified flat world: abstract continent node clusters.
+   Positions are stylised (NOT a precise/distortable map) and arranged
+   to read clearly on a phone. Indonesia hub sits lower-center. */
+const INDO = {x:540, y:1120};
+const WORLD_NODES = [
+  {x:230, y:760,  d:0},   // N. America
+  {x:360, y:980,  d:0.1}, // S. America
+  {x:560, y:720,  d:0.2}, // Europe
+  {x:620, y:960,  d:0.3}, // Africa
+  {x:800, y:800,  d:0.4}, // Asia
+  {x:860, y:1030, d:0.5}, // Oceania
+  {x:470, y:860,  d:0.15},
+  {x:720, y:1120, d:0.45},
+];
+const worldNodesG = $("#worldNodes");
+const worldRoutesG = $("#worldRoutes");
+const WN = WORLD_NODES.map(n=>{
+  const ring = el("circle",{cx:n.x,cy:n.y,r:0,fill:"none",stroke:"#39D98A","stroke-width":2.5,opacity:0});
+  const dot  = el("circle",{cx:n.x,cy:n.y,r:0,fill:"#39D98A"});
+  worldNodesG.appendChild(ring); worldNodesG.appendChild(dot);
+  return {...n, ring, dot};
+});
+const WR = WORLD_NODES.map(n=>{
+  // quadratic curve from Indonesia hub to node, arching upward
+  const mx = (INDO.x+n.x)/2, my = (INDO.y+n.y)/2 - 120 - Math.abs(INDO.x-n.x)*0.12;
+  const p = el("path",{d:`M${INDO.x} ${INDO.y} Q ${mx} ${my} ${n.x} ${n.y}`,
+    fill:"none",stroke:"#63C9A5","stroke-width":3,opacity:0.9,"stroke-linecap":"round"});
+  worldRoutesG.appendChild(p);
+  const len = p.getTotalLength();
+  p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+  return {node:p, len, delay:n.d};
+});
+// central Indonesia hub for scenes 2-4
+const worldHub = el("circle",{cx:INDO.x,cy:INDO.y,r:0,fill:"#FFFFFF"});
+const worldHubRing = el("circle",{cx:INDO.x,cy:INDO.y,r:0,fill:"none",stroke:"#39D98A","stroke-width":3,opacity:0.7});
+worldNodesG.appendChild(worldHubRing); worldNodesG.appendChild(worldHub);
+
+/* Scene 3/4 — payment network. The world nodes "become" payment nodes:
+   rounded-rect cards arranged in an organised ring around the hub. */
+const payLinksG = $("#payLinks");
+const payNodesG = $("#payNodes");
+// dedicated visible hub for the payment network (lives inside #payGroup)
+const payHub = el("circle",{cx:INDO.x,cy:INDO.y,r:0,fill:"#FFFFFF"});
+const payHubRing = el("circle",{cx:INDO.x,cy:INDO.y,r:0,fill:"none",stroke:"#39D98A","stroke-width":3,opacity:0.6});
+payLinksG.appendChild(payHubRing); payLinksG.appendChild(payHub);
+const PAY_COUNT = 8;
+const PAY = [];
+const PR = 300; // ring radius
+for(let i=0;i<PAY_COUNT;i++){
+  const ang = (-90 + i*(360/PAY_COUNT)) * Math.PI/180;
+  const x = INDO.x + Math.cos(ang)*PR;
+  const y = INDO.y + Math.sin(ang)*PR;
+  // connecting link hub->card
+  const link = el("line",{x1:INDO.x,y1:INDO.y,x2:x,y2:y,stroke:"#39D98A","stroke-width":3,opacity:0});
+  payLinksG.appendChild(link);
+  // card group
+  const g = el("g",{opacity:0});
+  const w=132,h=96;
+  const rect = el("rect",{x:x-w/2,y:y-h/2,width:w,height:h,rx:22,
+    fill:"#10483A",stroke:"#39D98A","stroke-width":2.5});
+  g.appendChild(rect);
+  // simple line-icon inside: alternate wallet / bank / card / node glyphs
+  const glyph = makeGlyph(i%4, x, y);
+  g.appendChild(glyph);
+  payNodesG.appendChild(g);
+  // pulse dot that travels along link (scene 4)
+  const pulse = el("circle",{cx:INDO.x,cy:INDO.y,r:0,fill:"#FFFFFF",opacity:0});
+  payLinksG.appendChild(pulse);
+  PAY.push({x,y,ang,link,g,rect,pulse});
+}
+function makeGlyph(kind, cx, cy){
+  const g = el("g",{stroke:"#C2DED2","stroke-width":3,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"});
+  if(kind===0){ // card
+    g.appendChild(el("rect",{x:cx-26,y:cy-16,width:52,height:34,rx:6}));
+    g.appendChild(el("line",{x1:cx-26,y1:cy-4,x2:cx+26,y2:cy-4}));
+  } else if(kind===1){ // bank
+    g.appendChild(el("path",{d:`M${cx-24} ${cy-6} L${cx} ${cy-20} L${cx+24} ${cy-6}`}));
+    g.appendChild(el("line",{x1:cx-20,y1:cy-6,x2:cx-20,y2:cy+16}));
+    g.appendChild(el("line",{x1:cx,y1:cy-6,x2:cx,y2:cy+16}));
+    g.appendChild(el("line",{x1:cx+20,y1:cy-6,x2:cx+20,y2:cy+16}));
+    g.appendChild(el("line",{x1:cx-26,y1:cy+16,x2:cx+26,y2:cy+16}));
+  } else if(kind===2){ // wallet
+    g.appendChild(el("rect",{x:cx-26,y:cy-16,width:52,height:34,rx:7}));
+    g.appendChild(el("circle",{cx:cx+12,cy:cy+1,r:5,fill:"#39D98A",stroke:"none"}));
+  } else { // node / transfer arrows
+    g.appendChild(el("path",{d:`M${cx-20} ${cy-8} H${cx+14} M${cx+6} ${cy-16} L${cx+20} ${cy-8} L${cx+6} ${cy}`}));
+    g.appendChild(el("path",{d:`M${cx+20} ${cy+8} H${cx-14} M${cx-6} ${cy} L${cx-20} ${cy+8} L${cx-6} ${cy+16}`}));
+  }
+  return g;
+}
+
+/* Scene 5 — final constellation (hub + few points) reuses pay positions */
+const finalG = $("#finalGroup");
+const FINAL_PTS = [0,2,4,6].map(i=>PAY[i]);
+const FINAL_NODES = FINAL_PTS.map(p=>{
+  const line = el("line",{x1:INDO.x,y1:580,x2:p.x,y2:p.y*0.0+ (p.y),stroke:"#39D98A","stroke-width":2.5,opacity:0});
+  const dot = el("circle",{cx:p.x,cy:p.y,r:0,fill:"#39D98A"});
+  finalG.appendChild(line); finalG.appendChild(dot);
+  return {line,dot,p};
+});
+const finalHub = el("circle",{cx:INDO.x,cy:580,r:0,fill:"#FFFFFF"});
+finalG.appendChild(finalHub);
+
+/* travelling line motif */
+const travel = $("#travelLine");
+const travelHead = $("#travelHead");
+
+/* ================================================================
+   WORD-REVEAL SETUP (clip + lift)
+   ================================================================ */
+function revealWords(container, t, start, stagger=0.18, dur=0.5){
+  const words = container.querySelectorAll(".word > span");
+  words.forEach((w,i)=>{
+    const p = easeOut(clamp((t - (start + i*stagger)) / dur));
+    w.style.transform = `translateY(${(1-p)*110}%)`;
+  });
+}
+
+/* ================================================================
+   MASTER RENDER (t in ms)
+   ================================================================ */
+const S = { // scene boundaries (ms)
+  s1:[0,3000], s2:[3000,6000], s3:[6000,9500], s4:[9500,12000], s5:[12000,15000]
+};
+
+function render(t){
+  const T = t/1000; // seconds for convenience
+
+  /* ---- persistent dot field (fades in after 0.4s, twinkles) ---- */
+  const dfIn = seg(t,400,1400,easeOut);
+  dotfield.setAttribute("opacity", dfIn);
+  for(const d of DOTS){
+    d.node.setAttribute("opacity", d.base*(0.6+0.4*Math.sin(T*2+d.ph)));
+  }
+
+  /* ============ SCENE 1 — HOOK (0–3s) ============ */
+  {
+    const g = $("#indoGroup");
+    const vis = (t<3400);
+    const inA = seg(t,150,900,easeOut);
+    const outA = 1-seg(t,2700,3200,easeInOut);
+    g.setAttribute("opacity", vis ? inA*outA : 0);
+
+    // Indonesia outline draws in (stroke dash)
+    const indo = $("#indoPath");
+    if(!indo._len){ indo._len = indo.getTotalLength(); indo.style.strokeDasharray=indo._len; }
+    indo.style.strokeDashoffset = indo._len*(1-seg(t,250,1300,easeOut));
+
+    // hub dot + ring pop
+    const hubR = 14*seg(t,900,1300,easeOutBack);
+    $("#indoHub").setAttribute("r", hubR);
+    $("#indoHubRing").setAttribute("r", 14 + 60*seg(t,1000,1800,easeOut));
+    $("#indoHubRing").setAttribute("opacity", 0.6*(1-seg(t,1000,1900)));
+
+    // expanding ripples (staggered)
+    RIPPLES.forEach((c,i)=>{
+      const st = 1000 + i*260;
+      const p = clamp((t-st)/1100);
+      c.setAttribute("r", p*180);
+      c.setAttribute("opacity", (p>0 && p<1 && t<3200) ? 0.5*(1-p) : 0);
+    });
+
+    // headline reveal
+    const t1 = $("#t1");
+    t1.style.opacity = vis ? (seg(t,1100,1500,easeOut)*outA) : 0;
+    revealWords(t1, t, 1.15, 0.22, 0.55);
+  }
+
+  /* travelling line motif: Indonesia (scene1) -> grows across screen,
+     active ~1.6s–3.4s then morphs the viewer into the world network */
+  {
+    const active = t>=1500 && t<3600;
+    travel.setAttribute("opacity", active ? 1 : 0);
+    travelHead.setAttribute("opacity", active ? 1 : 0);
+    if(active){
+      // a sweeping curve from Indo hub up toward world-map center
+      const p0={x:430,y:992}, p1={x:540,y:700}, p2={x:540,y:INDO.y};
+      const d=`M${p0.x} ${p0.y} Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`;
+      if(travel._d!==d){ travel.setAttribute("d",d); travel._d=d; travel._len=travel.getTotalLength(); travel.style.strokeDasharray=travel._len; }
+      const p = seg(t,1600,3200,easeInOut);
+      travel.style.strokeDashoffset = travel._len*(1-p);
+      // head position
+      const pt = travel.getPointAtLength(travel._len*p);
+      travelHead.setAttribute("cx",pt.x); travelHead.setAttribute("cy",pt.y);
+      travelHead.setAttribute("r", 9*clamp((t-1600)/300) * (1-seg(t,3200,3550)));
+      travel.setAttribute("opacity", 1-seg(t,3300,3600));
+    }
+  }
+
+  /* ============ SCENE 2 — GLOBAL REACH (3–6s) ============ */
+  {
+    const g = $("#worldGroup");
+    const vis = (t>=2800 && t<6400);
+    const inA = seg(t,2900,3400,easeOut);
+    const outA = 1-seg(t,5900,6400,easeInOut);
+    g.setAttribute("opacity", vis ? inA*outA : 0);
+
+    // hub appears
+    worldHub.setAttribute("r", 13*seg(t,3000,3400,easeOutBack));
+    worldHubRing.setAttribute("r", 13 + 26*(0.5+0.5*Math.sin(T*3)));
+    worldHubRing.setAttribute("opacity", 0.5*inA*outA);
+
+    // nodes pop in sequentially
+    WN.forEach(n=>{
+      const st = 3300 + n.d*1500;
+      const p = seg(t,st,st+450,easeOutBack);
+      n.dot.setAttribute("r", 10*p);
+      n.ring.setAttribute("r", 10 + 22*seg(t,st,st+900,easeOut));
+      n.ring.setAttribute("opacity", 0.5*(1-seg(t,st,st+1100))*inA*outA);
+    });
+    // routes draw sequentially
+    WR.forEach(r=>{
+      const st = 3400 + r.delay*1500;
+      const p = seg(t,st,st+700,easeOut);
+      r.node.style.strokeDashoffset = r.len*(1-p);
+      r.node.setAttribute("opacity", 0.9*inA*outA);
+    });
+
+    // stat text (slides map "aside" by nudging world group up a touch via text appear)
+    const t2=$("#t2");
+    t2.style.opacity = vis ? (seg(t,4300,4700,easeOut)*outA) : 0;
+    const num = t2.querySelector(".bignum");
+    const sc = 0.6 + 0.4*seg(t,4300,4800,easeOutBack);
+    num.style.transform = `scale(${sc})`;
+    num.style.transformOrigin = "center";
+    t2.querySelector(".statlabel").style.transform =
+      `translateY(${(1-seg(t,4600,5000,easeOut))*40}px)`;
+    t2.querySelector(".statlabel").style.opacity = seg(t,4600,5000,easeOut);
+    // gently lift the world group so number has room
+    g.style.transform = `translateY(${-70*seg(t,4300,4900,easeInOut)}px)`;
+  }
+
+  /* ============ SCENE 3 — LOCAL PAYMENT METHODS (6–9.5s) ============ */
+  {
+    const g = $("#payGroup");
+    // payment network appears in scene 3 and persists through scene 4,
+    // then fades as scene 5 takes over.
+    const inA = seg(t,6000,6500,easeOut);
+    let payVis = 0;
+    if(t>=5900 && t<12000) payVis = clamp(inA);
+    else if(t>=12000 && t<12400) payVis = (1-seg(t,12000,12400,easeInOut))*clamp(inA);
+    g.setAttribute("opacity", payVis);
+
+    // hub persists (reuse world hub position via payGroup implicit INDO)
+    // links grow out
+    PAY.forEach((p,i)=>{
+      const st = 6200 + i*120;
+      const grow = seg(t,st,st+500,easeOut);
+      p.link.setAttribute("opacity", 0.75*grow);
+      // card scale-in
+      const cp = seg(t,st+150,st+700,easeOutBack);
+      p.g.setAttribute("opacity", cp);
+      p.g.style.transformBox = "fill-box";
+      p.g.style.transformOrigin = `${p.x}px ${p.y}px`;
+      p.g.setAttribute("transform", `translate(${(1-cp)*(INDO.x-p.x)*0.15} ${(1-cp)*(INDO.y-p.y)*0.15}) scale(${0.4+0.6*cp})`);
+    });
+
+    // payment-network core hub (visible for scenes 3–4)
+    payHub.setAttribute("r", 14*seg(t,6000,6400,easeOutBack));
+    payHubRing.setAttribute("r", 14 + 22*(0.5+0.5*Math.sin(T*2.5)));
+    payHubRing.setAttribute("opacity", 0.5);
+
+    const t3=$("#t3");
+    // scene-3 stat text: fade in at 6.7s, hold, fade out by 9.7s
+    let t3op = 0;
+    if(t>=6600 && t<9700) t3op = seg(t,6700,7100,easeOut)*(1-seg(t,9300,9700,easeInOut));
+    t3.style.opacity = t3op;
+    const num3=t3.querySelector(".bignum");
+    num3.style.transform = `scale(${0.6+0.4*seg(t,6700,7200,easeOutBack)})`;
+    num3.style.transformOrigin="center";
+    const lb3=t3.querySelector(".statlabel");
+    lb3.style.opacity=seg(t,7000,7400,easeOut);
+    lb3.style.transform=`translateY(${(1-seg(t,7000,7400,easeOut))*40}px)`;
+  }
+
+  /* ============ SCENE 4 — THE BENEFIT (9.5–12s) ============ */
+  {
+    // bidirectional pulses travel along pay links
+    const active = t>=9400 && t<12200;
+    PAY.forEach((p,i)=>{
+      if(!active){ p.pulse.setAttribute("opacity",0); return; }
+      const speed = 1400;
+      const phase = ((t-9400 + i*160) % speed)/speed; // 0..1
+      const dir = i%2===0 ? phase : 1-phase; // alternate direction = incoming/outgoing
+      const x = INDO.x + (p.x-INDO.x)*dir;
+      const y = INDO.y + (p.y-INDO.y)*dir;
+      p.pulse.setAttribute("cx",x); p.pulse.setAttribute("cy",y);
+      p.pulse.setAttribute("r", 6);
+      p.pulse.setAttribute("opacity", 0.9*seg(t,9400,9700,easeOut)*(1-seg(t,11900,12300)));
+      p.link.setAttribute("opacity", 0.75*(1-seg(t,11900,12300)));
+      p.link.setAttribute("stroke", i%2===0 ? "#39D98A":"#63C9A5");
+    });
+
+    const t4=$("#t4");
+    const vis4 = t>=9500 && t<12200;
+    t4.style.opacity = vis4 ? (seg(t,9600,10000,easeOut)*(1-seg(t,11800,12200))) : 0;
+    revealWords(t4, t, 9.7, 0.2, 0.5);
+  }
+
+  /* ============ SCENE 5 — ANNOUNCEMENT (12–15s) ============ */
+  {
+    const g=$("#finalGroup");
+    const vis = t>=12000;
+    const inA = seg(t,12100,12700,easeOut);
+    g.setAttribute("opacity", vis?inA:0);
+
+    finalHub.setAttribute("r", 15*seg(t,12200,12700,easeOutBack));
+    FINAL_NODES.forEach((f,i)=>{
+      const st=12300+i*120;
+      f.dot.setAttribute("r", 9*seg(t,st,st+450,easeOutBack));
+      f.line.setAttribute("opacity", 0.6*seg(t,st,st+600,easeOut)*(0.7+0.3*Math.sin(T*2+i)));
+      // settle lines toward hub at y=580
+      f.line.setAttribute("y1",580);
+    });
+
+    const t5=$("#t5");
+    t5.style.opacity = vis?1:0;
+    $("#t5kick").style.opacity = seg(t,12300,12700,easeOut);
+    const name=$("#t5name");
+    name.style.opacity = seg(t,12600,13100,easeOut);
+    name.style.transform = `scale(${0.9+0.1*seg(t,12600,13200,easeOutBack)})`;
+    name.style.transformOrigin="center";
+    const sub=$("#t5sub");
+    sub.style.opacity = seg(t,13100,13600,easeOut);
+    sub.style.transform = `translateY(${(1-seg(t,13100,13600,easeOut))*34}px)`;
+
+    // logo slot fades in last, settles
+    $("#logoSlot").style.opacity = seg(t,13600,14200,easeOut);
+  }
+
+  /* HUD */
+  $("#barfill").style.width = (clamp(t/DURATION)*100)+"%";
+  $("#tc").textContent = (t/1000).toFixed(2)+"s";
+  const sc = t<3000?1:t<6000?2:t<9500?3:t<12000?4:5;
+  $("#scene").textContent = "Scene "+sc;
+}
+
+/* ================================================================
+   PLAYBACK LOOP
+   ================================================================ */
+let startTime=null, raf=null;
+function loop(ts){
+  if(startTime===null) startTime=ts;
+  let t = ts-startTime;
+  if(t>=DURATION){ t=DURATION; render(t); return; } // hold final frame
+  render(t);
+  raf=requestAnimationFrame(loop);
+}
+function play(){ cancelAnimationFrame(raf); startTime=null; render(0); raf=requestAnimationFrame(loop); }
+
+/* controls */
+$("#replay").addEventListener("click", play);
+$("#cleanBtn").addEventListener("click", ()=>stage.classList.toggle("clean"));
+
+/* ?clean=1 hides HUD for recording; ?t=ms freezes a single frame */
+const params = new URLSearchParams(location.search);
+if(params.get("clean")==="1") stage.classList.add("clean");
+if(params.has("t")){ render(parseFloat(params.get("t"))); }
+else { render(0); setTimeout(play, 350); }
+
+/* expose render + a stopper for the headless frame-renderer (render.mjs) */
+window.render = render;
+window.__stopPlayback = () => cancelAnimationFrame(raf);
+</script>
+</body>
+</html>
